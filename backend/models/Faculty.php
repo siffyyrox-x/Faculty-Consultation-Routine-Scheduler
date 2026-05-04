@@ -2,6 +2,9 @@
 
 class Faculty extends Model {
 
+    /**
+     * Search for faculty members by course name or code
+     */
     public function searchByCourse($searchTerm) {
         $query = "SELECT DISTINCT 
                     f.id as faculty_id,
