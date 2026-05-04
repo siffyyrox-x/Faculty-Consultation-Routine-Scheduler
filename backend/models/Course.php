@@ -31,4 +31,15 @@ class Course extends Model {
         }
         return false;
     }
+
+    /**
+     * Get all courses belonging to a specific department
+     */
+    public function findByDepartment($department) {
+        $query = "SELECT id, course_code, course_name FROM courses WHERE department = :dept ORDER BY course_code";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(":dept", $department);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
