@@ -12,8 +12,11 @@ class Router {
     }
 
     public function dispatch($requestMethod, $requestUrl) {
-        // Strip trailing slash
-        $requestUrl = rtrim($requestUrl, '/');
+        // Normalize URL
+        $requestUrl = trim($requestUrl, '/');
+        if (empty($requestUrl)) {
+            $requestUrl = 'home';
+        }
 
         // Allow CORS preflight requests
         if ($requestMethod === 'OPTIONS') {
@@ -32,16 +35,19 @@ class Router {
                     if (method_exists($controller, $methodName)) {
                         try {
                             $controller->$methodName();
-                        } catch (Exception $e) {
-                            $this->sendError(500, "Server Error: " . $e->getMessage());
+                        } catch (Exception $exception) {
+                            $this->sendError(500, "Internal Server Error: " . $exception->getMessage());
                         }
                         return;
                     }
+                } else {
+                    $this->sendError(500, "Controller mapping error: $controllerName not found");
+                    return;
                 }
             }
         }
 
-        $this->sendError(404, "Route not found");
+        $this->sendError(404, "Invalid endpoint: $requestUrl");
     }
 
     private function sendError($code, $message) {
