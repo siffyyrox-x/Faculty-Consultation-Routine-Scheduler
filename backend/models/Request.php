@@ -68,4 +68,16 @@ class Request extends Model {
         $stmt->bindParam(":id", $id);
         return $stmt->execute();
     }
+
+    /**
+     * Count pending requests for a specific faculty member
+     */
+    public function countPendingByFaculty($faculty_id) {
+        $query = "SELECT COUNT(*) as total FROM consultation_requests WHERE faculty_id = :faculty_id AND status = 'pending'";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(":faculty_id", $faculty_id);
+        $stmt->execute();
+        $row = $stmt->fetch();
+        return $row['total'];
+    }
 }
