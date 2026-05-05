@@ -107,7 +107,7 @@ class Faculty extends Model {
     }
 
     public function findById($id) {
-        $query = "SELECT id FROM faculty WHERE id = :id";
+        $query = "SELECT * FROM faculty WHERE id = :id";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();

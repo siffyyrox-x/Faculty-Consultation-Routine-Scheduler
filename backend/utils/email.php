@@ -24,7 +24,7 @@ function sendEmail($to, $subject, $htmlMessage)
     $mail = new PHPMailer\PHPMailer\PHPMailer(true);
     try {
         // Server settings
-        $mail->SMTPDebug = 2; 
+        $mail->SMTPDebug = 0; 
         // Redirect debug output to error_log instead of echoing it to the browser
         $mail->Debugoutput = function($str, $level) {
             error_log("SMTP: $str");

@@ -37,7 +37,8 @@ class RequestController extends Controller {
 
         // Validate faculty and consultation exist
         $facultyModel = new Faculty();
-        if (!$facultyModel->findById($data['faculty_id'])) {
+        $faculty = $facultyModel->findById($data['faculty_id']);
+        if (!$faculty) {
             $this->errorResponse("Faculty not found", 404);
         }
 
@@ -51,6 +52,15 @@ class RequestController extends Controller {
         );
 
         if ($request_id) {
+            // Notify faculty about the new request
+            $subject = "New Consultation Request from {$data['student_name']}";
+            $message = "<h2>You have a new consultation request!</h2>";
+            $message .= "<p><strong>Student:</strong> {$data['student_name']} ({$data['student_email']})</p>";
+            $message .= "<p><strong>Message:</strong> " . htmlspecialchars($data['message']) . "</p>";
+            $message .= "<p>Please log in to your dashboard to approve or decline this request.</p>";
+            
+            sendEmail($faculty['email'], $subject, $message);
+
             $this->jsonResponse(["message" => "Request submitted successfully"], 201);
         } else {
             $this->errorResponse("Unable to submit request", 503);
@@ -110,9 +120,13 @@ class RequestController extends Controller {
                 $message .= "<p><strong>Message from Faculty:</strong> " . htmlspecialchars($data['response_message']) . "</p>";
             }
 
-            sendEmail($request['student_email'], $subject, $message);
+            $emailSent = sendEmail($request['student_email'], $subject, $message);
 
-            $this->jsonResponse(["message" => "Request approved and email sent"], 200);
+            if ($emailSent) {
+                $this->jsonResponse(["message" => "Request approved and email sent"], 200);
+            } else {
+                $this->jsonResponse(["message" => "Request approved, but failed to send email notification to student."], 200);
+            }
         } else {
             $this->errorResponse("Unable to approve request", 503);
         }
@@ -153,9 +167,13 @@ class RequestController extends Controller {
                 $message .= "<p><strong>Message from Faculty:</strong> " . htmlspecialchars($data['response_message']) . "</p>";
             }
 
-            sendEmail($request['student_email'], $subject, $message);
+            $emailSent = sendEmail($request['student_email'], $subject, $message);
 
-            $this->jsonResponse(["message" => "Request denied and email sent"], 200);
+            if ($emailSent) {
+                $this->jsonResponse(["message" => "Request denied and email sent"], 200);
+            } else {
+                $this->jsonResponse(["message" => "Request denied, but failed to send email notification to student."], 200);
+            }
         } else {
             $this->errorResponse("Unable to decline request", 503);
         }
