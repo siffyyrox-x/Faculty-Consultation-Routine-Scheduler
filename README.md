@@ -2,33 +2,33 @@
 
 A complete web-based system that allows students to search for faculty consultation hours, build their weekly routines, and request consultations. Faculty members can manage their information and approve/decline student requests.
 
-## 🚀 Features
+## Features
 
 ### For Students:
-- ✅ Search faculty by course name or faculty name
-- ✅ View consultation hours with day, time, and location
-- ✅ Build weekly consultation routine with visual 7-day grid
-- ✅ Prevent time conflicts automatically
-- ✅ Color-coded courses for easy identification
-- ✅ Download routine as PDF
-- ✅ Submit consultation requests to faculty
-- ✅ Local storage persistence for routines
+- Search faculty by course name or faculty name
+- View consultation hours with day, time, and location
+- Build weekly consultation routine with visual 7-day grid
+- Prevent time conflicts automatically
+- Color-coded courses for easy identification
+- Download routine as PDF
+- Submit consultation requests to faculty
+- Local storage persistence for routines
 
 ### For Faculty:
-- ✅ Register and login securely
-- ✅ Update profile information (name, department, phone)
-- ✅ View all student consultation requests
-- ✅ Approve or decline requests
-- ✅ Email notifications sent to students (logged for demo)
+- Register and login securely
+- Update profile information (name, department, phone)
+- View all student consultation requests
+- Approve or decline requests
+- Email notifications sent to students (logged for demo)
 
-## 📋 Prerequisites
+## Prerequisites
 
- - PHP 7.4 or higher
+- PHP 7.4 or higher
 - MySQL 5.7 or higher  
 - Node.js 18+ and npm
 - XAMPP, MAMP, or LAMP stack (recommended)
 
-## 🛠️ Key Features
+## Key Features
 
 - **Faculty Dashboard**: Manage consultation slots and student requests.
 - **Student Portal**: Search faculty by department or name and request consultations.
@@ -36,7 +36,7 @@ A complete web-based system that allows students to search for faculty consultat
 - **Routine Management**: Students can save consultation slots to their personal routine.
 - **MVC Architecture**: Clean separation of concerns for maintainability.
 
-## 📋 Installation
+## Installation
 
 ### 1. Clone or Download the Project
 
@@ -53,7 +53,7 @@ cd /path/to/htdocs/  # For XAMPP  on macOS: /Applications/XAMPP/htdocs/
 4. Import the database schema:
    - Click on `faculty_consultation_db`
    - Go to "Import" tab
-   -  Select `/FAC/backend/database.sql`
+   - Select `/FAC/backend/database.sql`
    - Click "Go"
 
 ### 3. Backend Configuration
@@ -73,7 +73,7 @@ cd /path/to/htdocs/FAC/frontend
 npm install
 ```
 
-## 🚀 Running the Application
+## Running the Application
 
 ### Start the Backend (PHP)
 
@@ -94,7 +94,7 @@ npm run dev
 
 The app will open at: **http://localhost:5173**
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Student Workflow
 
@@ -118,7 +118,7 @@ The app will open at: **http://localhost:5173**
 6. Click **Approve** or **Decline** for each request
 7. Email notifications are logged to console (demo mode)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FAC/
@@ -156,7 +156,7 @@ FAC/
     └── vite.config.js          # Vite configuration
 ```
 
-## 🗄️ Database Schema
+## Database Schema
 
 ### Tables:
 - **faculty** - Faculty member information
@@ -165,7 +165,7 @@ FAC/
 - **consultation_requests** - Student requests  
 - **routine_items** - Saved student routines (optional)
 
-## 🔐 Sample Data
+## Sample Data
 
 The database comes with sample data:
 
@@ -181,7 +181,7 @@ The database comes with sample data:
 - Database Systems (CSE301)
 - And more...
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Backend Issues
 
@@ -208,7 +208,7 @@ The database comes with sample data:
 - Run `npm install` again
 - Try clearing browser cache
 
-## 🎨 Customization
+## Customization
 
 ### Change Database Credentials
 
@@ -224,7 +224,7 @@ private $password = "your-password";
 
 Replace the mock email function in `/backend/utils/email.php` with PHPMailer or similar SMTP library.
 
-## 📦 Building for Production
+## Building for Production
 
 ```bash
 cd frontend
@@ -232,6 +232,22 @@ npm run build
 ```
 
 The production build will be in `frontend/dist/`. Copy these files to your web server.
+
+## License
+
+This project is for educational and demonstration purposes.
+
+## Support
+
+For issues or questions:
+1. Check the troubleshooting section
+2. Verify all prerequisites are installed
+3. Check browser console and PHP error logs
+
+---
+
+**Built with:** React, Vite, PHP, MySQL, Tailwind CSS
+e in `frontend/dist/`. Copy these files to your web server.
 
 ## 📝 License
 
