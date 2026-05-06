@@ -89,6 +89,7 @@ CREATE TABLE consultation_requests (
 
 -- =============================================
 -- 5. ROUTINE ITEMS TABLE (Student's Saved Routine)
+-- Stores consultations added to a student's personal weekly routine
 -- =============================================
 CREATE TABLE routine_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
