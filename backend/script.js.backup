@@ -1,0 +1,752 @@
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, Mail, MapPin, Plus, Download, Check, X, Search, User, BookOpen, Settings, LogOut, UserPlus, LogIn } from 'lucide-react';
+
+// API Configuration
+const API_BASE_URL = 'http://localhost/faculty-consultation-api/api';
+
+const App = () => {
+  const [view, setView] = useState('student'); // 'student', 'faculty-login', 'faculty-register', 'faculty-dashboard'
+  const [currentView, setCurrentView] = useState('empty');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('course');
+  const [searchResults, setSearchResults] = useState([]);
+  const [routine, setRoutine] = useState([]);
+  const [loggedInFaculty, setLoggedInFaculty] = useState(null);
+  const [facultyRequests, setFacultyRequests] = useState([]);
+  const [facultyDashView, setFacultyDashView] = useState('info');
+  const [loading, setLoading] = useState(false);
+
+  // Load routine from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('studentRoutine');
+    if (stored) {
+      setRoutine(JSON.parse(stored));
+    }
+  }, []);
+
+  // Save routine to localStorage
+  useEffect(() => {
+    localStorage.setItem('studentRoutine', JSON.stringify(routine));
+  }, [routine]);
+
+  // Fetch faculty requests when logged in
+  useEffect(() => {
+    if (loggedInFaculty) {
+      fetchFacultyRequests();
+    }
+  }, [loggedInFaculty]);
+
+  // ============= API CALLS =============
+
+  const searchByCourse = async () => {
+    if (!searchQuery.trim()) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/search/course.php?course_name=${encodeURIComponent(searchQuery)}`);
+      const data = await response.json();
+      setSearchResults(data.data || []);
+      setCurrentView('search');
+    } catch (error) {
+      alert('Search failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const searchByFaculty = async () => {
+    if (!searchQuery.trim()) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/search/faculty.php?faculty_name=${encodeURIComponent(searchQuery)}`);
+      const data = await response.json();
+      setSearchResults(data.data || []);
+      setCurrentView('search');
+    } catch (error) {
+      alert('Search failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = () => {
+    if (searchType === 'course') {
+      searchByCourse();
+    } else {
+      searchByFaculty();
+    }
+  };
+
+  const submitConsultationRequest = async (facultyId, consultationId, studentEmail, message) => {
+    if (!studentEmail || !message) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/requests/create.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          faculty_id: facultyId,
+          consultation_id: consultationId,
+          student_email: studentEmail,
+          message: message
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Consultation request sent successfully!');
+      } else {
+        alert(data.message || 'Failed to submit request');
+      }
+    } catch (error) {
+      alert('Request failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const facultyLogin = async (email, password) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/faculty/login.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setLoggedInFaculty(data.faculty);
+        setView('faculty-dashboard');
+        setFacultyDashView('info');
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (error) {
+      alert('Login failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const facultyRegister = async (name, email, password, department, phone) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/faculty/register.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, department, phone })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Registration successful! Please login.');
+        setView('faculty-login');
+      } else {
+        alert(data.message || 'Registration failed');
+      }
+    } catch (error) {
+      alert('Registration failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const updateFacultyInfo = async (facultyId, name, department, phone) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/faculty/update.php`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ faculty_id: facultyId, name, department, phone })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Information updated successfully!');
+        setLoggedInFaculty({ ...loggedInFaculty, name, department, phone });
+      } else {
+        alert(data.message || 'Update failed');
+      }
+    } catch (error) {
+      alert('Update failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const fetchFacultyRequests = async () => {
+    if (!loggedInFaculty) return;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/requests/faculty.php?faculty_id=${loggedInFaculty.id}`);
+      const data = await response.json();
+      setFacultyRequests(data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch requests:', error);
+    }
+  };
+
+  const approveRequest = async (requestId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/requests/approve.php`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: requestId })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Request approved! Email sent to student.');
+        fetchFacultyRequests();
+      } else {
+        alert(data.message || 'Approval failed');
+      }
+    } catch (error) {
+      alert('Approval failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const declineRequest = async (requestId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/requests/decline.php`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: requestId })
+      });
+      
+      if (response.ok) {
+        alert('Request declined.');
+        fetchFacultyRequests();
+      }
+    } catch (error) {
+      alert('Decline failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  // ============= ROUTINE MANAGEMENT =============
+
+  const addToRoutine = (consultation, faculty) => {
+    const newItem = {
+      id: `ROUTINE${Date.now()}`,
+      consultationId: consultation.id,
+      facultyName: faculty.name,
+      courseName: consultation.course,
+      day: consultation.day,
+      startTime: consultation.start_time,
+      endTime: consultation.end_time,
+      location: consultation.location,
+      color: getColorForCourse(consultation.course)
+    };
+
+    // Check for conflicts
+    const hasConflict = routine.some(item => {
+      if (item.day !== newItem.day) return false;
+      const existingStart = parseTime(item.startTime);
+      const existingEnd = parseTime(item.endTime);
+      const newStart = parseTime(newItem.startTime);
+      const newEnd = parseTime(newItem.endTime);
+      return (newStart < existingEnd && newEnd > existingStart);
+    });
+
+    if (hasConflict) {
+      alert('Time conflict detected! This slot overlaps with an existing consultation.');
+      return;
+    }
+
+    setRoutine([...routine, newItem]);
+    setCurrentView('routine');
+  };
+
+  const removeFromRoutine = (itemId) => {
+    setRoutine(routine.filter(item => item.id !== itemId));
+  };
+
+  const downloadPDF = async () => {
+    const element = document.getElementById('routine-grid');
+    if (!element) return;
+
+    try {
+      const html2canvas = (await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')).default;
+      const jsPDF = (await import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')).jsPDF;
+
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const imgWidth = 280;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.save('consultation-routine.pdf');
+    } catch (err) {
+      alert('PDF generation failed. Please try again.');
+    }
+  };
+
+  // ============= HELPER FUNCTIONS =============
+
+  const parseTime = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  };
+
+  const formatTime = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+    return `${displayHour}:${minutes} ${period}`;
+  };
+
+  const getColorForCourse = (course) => {
+    const colors = ['#4A90E2', '#50C878', '#9B59B6', '#E67E22', '#E74C3C', '#1ABC9C'];
+    const hash = course.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+  };
+
+  // ============= RENDER VIEWS =============
+
+  // STUDENT VIEW
+  if (view === 'student') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-800">Faculty Consultation Scheduler</h1>
+            <button
+              onClick={() => setView('faculty-login')}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+            >
+              <User size={20} />
+              Faculty Login
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentView('empty')}
+                className={`px-6 py-3 font-medium ${currentView === 'empty' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+              >
+                1. Empty State
+              </button>
+              <button
+                onClick={() => setCurrentView('search')}
+                className={`px-6 py-3 font-medium ${currentView === 'search' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+              >
+                2. Search Results
+              </button>
+              <button
+                onClick={() => setCurrentView('routine')}
+                className={`px-6 py-3 font-medium ${currentView === 'routine' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600'}`}
+              >
+                3. With Routine
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search by course name or faculty name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+              >
+                <option value="course">Course</option>
+                <option value="faculty">Faculty</option>
+              </select>
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+              >
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Faculty Search Results</h2>
+              
+              {currentView === 'empty' && (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <Search size={64} className="mb-4" />
+                  <p className="text-lg">Search for faculty to see results</p>
+                </div>
+              )}
+
+              {(currentView === 'search' || currentView === 'routine') && (
+                <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                  {searchResults.length === 0 && searchQuery && !loading && (
+                    <p className="text-gray-500 text-center py-8">No results found</p>
+                  )}
+                  
+                  {searchResults.map(faculty => (
+                    <FacultyCard
+                      key={faculty.id}
+                      faculty={faculty}
+                      onAddToRoutine={addToRoutine}
+                      onRequest={submitConsultationRequest}
+                      formatTime={formatTime}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Your Weekly Routine</h2>
+                {routine.length > 0 && (
+                  <button
+                    onClick={downloadPDF}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                  >
+                    <Download size={18} />
+                    Download PDF
+                  </button>
+                )}
+              </div>
+
+              {routine.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <Calendar size={64} className="mb-4" />
+                  <p className="text-lg">Your routine will appear here</p>
+                  <p className="text-sm">Click + to add consultations</p>
+                </div>
+              ) : (
+                <div id="routine-grid" className="bg-white p-4">
+                  <RoutineGrid routine={routine} onRemove={removeFromRoutine} formatTime={formatTime} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // FACULTY LOGIN VIEW
+  if (view === 'faculty-login') {
+    return <FacultyLogin onLogin={facultyLogin} onSwitchToRegister={() => setView('faculty-register')} onBackToStudent={() => setView('student')} loading={loading} />;
+  }
+
+  // FACULTY REGISTER VIEW
+  if (view === 'faculty-register') {
+    return <FacultyRegister onRegister={facultyRegister} onSwitchToLogin={() => setView('faculty-login')} loading={loading} />;
+  }
+
+  // FACULTY DASHBOARD
+  if (view === 'faculty-dashboard' && loggedInFaculty) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Faculty Dashboard</h1>
+              <p className="text-sm text-gray-600">Welcome, {loggedInFaculty.name}</p>
+            </div>
+            <button
+              onClick={() => {
+                setLoggedInFaculty(null);
+                setView('student');
+              }}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+            >
+              <LogOut size={20} />
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFacultyDashView('info')}
+                className={`px-6 py-3 font-medium flex items-center gap-2 ${facultyDashView === 'info' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+              >
+                <Settings size={20} />
+                Manage Info
+              </button>
+              <button
+                onClick={() => {
+                  setFacultyDashView('requests');
+                  fetchFacultyRequests();
+                }}
+                className={`px-6 py-3 font-medium flex items-center gap-2 ${facultyDashView === 'requests' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+              >
+                <Mail size={20} />
+                Student Requests
+                {facultyRequests.filter(r => r.status === 'pending').length > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {facultyRequests.filter(r => r.status === 'pending').length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {facultyDashView === 'info' ? (
+            <FacultyInfoForm faculty={loggedInFaculty} onUpdate={updateFacultyInfo} loading={loading} />
+          ) : (
+            <RequestsList
+              requests={facultyRequests}
+              onApprove={approveRequest}
+              onDecline={declineRequest}
+              loading={loading}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// ============= COMPONENTS =============
+
+const FacultyCard = ({ faculty, onAddToRoutine, onRequest, formatTime }) => {
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [studentEmail, setStudentEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [selectedConsultation, setSelectedConsultation] = useState(null);
+
+  const handleSubmitRequest = () => {
+    if (selectedConsultation) {
+      onRequest(faculty.id, selectedConsultation.id, studentEmail, message);
+      setShowRequestForm(false);
+      setStudentEmail('');
+      setMessage('');
+      setSelectedConsultation(null);
+    }
+  };
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <User size={24} className="text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-800">{faculty.name}</h3>
+            <p className="text-sm text-gray-600">{faculty.department}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2 text-sm mb-4">
+        <div className="flex items-center gap-2 text-gray-700">
+          <BookOpen size={16} />
+          <span>{faculty.courses.join(', ')}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-700">
+          <Mail size={16} />
+          <span>{faculty.email}</span>
+        </div>
+      </div>
+
+      <div className="border-t pt-3 space-y-2">
+        <h4 className="font-semibold text-gray-700 text-sm mb-2">Consultation Hours:</h4>
+        {faculty.consultations && faculty.consultations.map((cons, idx) => (
+          <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar size={16} className="text-gray-600" />
+                <span className="font-medium">{cons.day}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                <Clock size={16} />
+                <span>{formatTime(cons.start_time)} - {formatTime(cons.end_time)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                <MapPin size={16} />
+                <span>{cons.location}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => onAddToRoutine(cons, faculty)}
+              className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
+              title="Add to routine"
+            >
+              <Plus size={18} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {!showRequestForm ? (
+        <button
+          onClick={() => setShowRequestForm(true)}
+          className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+        >
+          Request Consultation
+        </button>
+      ) : (
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg space-y-3">
+          <select
+            value={selectedConsultation?.id || ''}
+            onChange={(e) => {
+              const cons = faculty.consultations.find(c => c.id === parseInt(e.target.value));
+              setSelectedConsultation(cons);
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select consultation slot</option>
+            {faculty.consultations && faculty.consultations.map(cons => (
+              <option key={cons.id} value={cons.id}>
+                {cons.day} - {formatTime(cons.start_time)}
+              </option>
+            ))}
+          </select>
+          <input
+            type="email"
+            placeholder="Your email"
+            value={studentEmail}
+            onChange={(e) => setStudentEmail(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+          <textarea
+            placeholder="Your message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows="3"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSubmitRequest}
+              disabled={!selectedConsultation}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+            >
+              Send Request
+            </button>
+            <button
+              onClick={() => setShowRequestForm(false)}
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RoutineGrid = ({ routine, onRemove, formatTime }) => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const hours = Array.from({ length: 12 }, (_, i) => i + 8);
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr>
+            <th className="border border-gray-300 bg-gray-100 p-2 text-sm font-semibold w-20">Time</th>
+            {days.map(day => (
+              <th key={day} className="border border-gray-300 bg-gray-100 p-2 text-sm font-semibold">
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {hours.map(hour => {
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour > 12 ? hour - 12 : hour;
+            const timeLabel = `${displayHour}:00 ${period}`;
+            
+            return (
+              <tr key={hour}>
+                <td className="border border-gray-300 bg-gray-50 p-2 text-xs text-center font-medium">
+                  {timeLabel}
+                </td>
+                {days.map(day => {
+                  const item = routine.find(r => {
+                    const itemHour = parseInt(r.startTime.split(':')[0]);
+                    return r.day === day && itemHour === hour;
+                  });
+                  
+                  return (
+                    <td key={`${day}-${hour}`} className="border border-gray-300 p-1 relative h-20">
+                      {item && (
+                        <div
+                          className="p-2 rounded text-white text-xs h-full flex flex-col justify-between relative group"
+                          style={{ backgroundColor: item.color }}
+                        >
+                          <div>
+                            <div className="font-semibold">{item.courseName}</div>
+                            <div className="text-xs opacity-90">{item.facultyName}</div>
+                          </div>
+                          <button
+                            onClick={() => onRemove(item.id)}
+                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      
+      <div className="mt-4 flex flex-wrap gap-3">
+        {[...new Set(routine.map(r => r.courseName))].map(course => {
+          const item = routine.find(r => r.courseName === course);
+          return (
+            <div key={course} className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: item.color }}></div>
+              <span className="text-sm text-gray-700">{course}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const FacultyLogin = ({ onLogin, onSwitchToRegister, onBackToStudent, loading }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onLogin(email, password);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md w-full

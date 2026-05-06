@@ -120,8 +120,11 @@ const App = () => {
 
   // Track student request status (Requirement 3 Feature 4)
   const trackStudentRequests = async () => {
-    const emailToTrack = studentEmail || trackEmail;
-    if (!emailToTrack) { alert('Please sign in first'); return; }
+    const emailToTrack = studentEmail;
+    if (!emailToTrack) { 
+      setCurrentView('empty'); 
+      return; 
+    }
     setTrackLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/requests/student.php?email=${encodeURIComponent(emailToTrack)}`);
@@ -734,8 +737,11 @@ const App = () => {
 
   const studentLogout = () => {
     setStudentEmail(null);
+    setTrackEmail('');
+    setTrackedRequests([]);
     localStorage.removeItem('studentEmail');
-    if (currentView === 'track') setCurrentView('empty');
+    setCurrentView('empty');
+    alert("Signed out successfully.");
   };
 
   // ============= RENDER VIEWS =============
@@ -767,14 +773,19 @@ const App = () => {
               ) : (
                 <button
                   onClick={() => {
-                    const email = window.prompt("Enter your student email to track requests:");
+                    const email = window.prompt("Please enter your Student Email to sign in and track requests:");
                     if (email && email.includes('@')) {
                       setStudentEmail(email);
+                      setTrackEmail(email);
                       localStorage.setItem('studentEmail', email);
+                      alert(`Welcome! You can now track requests for ${email}`);
+                    } else if (email) {
+                      alert("Please enter a valid email address.");
                     }
                   }}
-                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm"
+                  className="px-5 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
                 >
+                  <LogIn size={18} />
                   Student Sign In
                 </button>
               )}

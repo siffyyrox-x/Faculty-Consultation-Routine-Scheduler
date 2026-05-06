@@ -1,0 +1,599 @@
+<?php
+// =============================================
+// config/database.php - Database Configuration
+// =============================================
+
+class Database {
+    private $host = "localhost";
+    private $db_name = "faculty_consultation_db";
+    private $username = "root";
+    private $password = "";
+    private $conn;
+
+    public function getConnection() {
+        $this->conn = null;
+        try {
+            $this->conn = new PDO(
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                $this->username,
+                $this->password
+            );
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } catch(PDOException $e) {
+            echo "Connection Error: " . $e->getMessage();
+        }
+        return $this->conn;
+    }
+}
+
+// =============================================
+// config/cors.php - CORS Headers
+// =============================================
+
+function setCorsHeaders() {
+    header("Access-Control-Allow-Origin: *");
+    header("Content-Type: application/json; charset=UTF-8");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
+    header("Access-Control-Max-Age: 3600");
+    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+}
+
+// =============================================
+// utils/email.php - Email Helper
+// =============================================
+
+function sendEmail($to, $subject, $message) {
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+    $headers .= "From: Faculty Consultation System <noreply@university.edu>" . "\r\n";
+    
+    // For development: log email instead of sending
+    error_log("EMAIL TO: $to\nSUBJECT: $subject\nMESSAGE: $message");
+    
+    // Uncomment for production
+    // return mail($to, $subject, $message, $headers);
+    
+    return true; // Mock success for development
+}
+
+// =============================================
+// api/faculty/register.php - Faculty Registration
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->name) && !empty($data->email) && !empty($data->password)) {
+        
+        // Check if email already exists
+        $check_query = "SELECT id FROM faculty WHERE email = :email";
+        $check_stmt = $db->prepare($check_query);
+        $check_stmt->bindParam(":email", $data->email);
+        $check_stmt->execute();
+        
+        if ($check_stmt->rowCount() > 0) {
+            http_response_code(409);
+            echo json_encode(["message" => "Email already registered"]);
+            exit;
+        }
+        
+        $query = "INSERT INTO faculty (name, email, password, department, phone) 
+                  VALUES (:name, :email, :password, :department, :phone)";
+        
+        $stmt = $db->prepare($query);
+        
+        $hashed_password = password_hash($data->password, PASSWORD_BCRYPT);
+        
+        $stmt->bindParam(":name", $data->name);
+        $stmt->bindParam(":email", $data->email);
+        $stmt->bindParam(":password", $hashed_password);
+        $stmt->bindParam(":department", $data->department);
+        $stmt->bindParam(":phone", $data->phone);
+        
+        if ($stmt->execute()) {
+            http_response_code(201);
+            echo json_encode([
+                "message" => "Faculty registered successfully",
+                "faculty_id" => $db->lastInsertId()
+            ]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to register faculty"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Incomplete data"]);
+    }
+}
+
+// =============================================
+// api/faculty/login.php - Faculty Login
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->email) && !empty($data->password)) {
+        $query = "SELECT id, name, email, password, department, phone FROM faculty WHERE email = :email";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(":email", $data->email);
+        $stmt->execute();
+        
+        if ($stmt->rowCount() == 1) {
+            $row = $stmt->fetch();
+            
+            if (password_verify($data->password, $row['password'])) {
+                http_response_code(200);
+                echo json_encode([
+                    "message" => "Login successful",
+                    "faculty" => [
+                        "id" => $row['id'],
+                        "name" => $row['name'],
+                        "email" => $row['email'],
+                        "department" => $row['department'],
+                        "phone" => $row['phone']
+                    ]
+                ]);
+            } else {
+                http_response_code(401);
+                echo json_encode(["message" => "Invalid credentials"]);
+            }
+        } else {
+            http_response_code(401);
+            echo json_encode(["message" => "Faculty not found"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Incomplete data"]);
+    }
+}
+
+// =============================================
+// api/faculty/update.php - Update Faculty Info
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->faculty_id)) {
+        $query = "UPDATE faculty SET name = :name, department = :department, phone = :phone WHERE id = :id";
+        
+        $stmt = $db->prepare($query);
+        
+        $stmt->bindParam(":name", $data->name);
+        $stmt->bindParam(":department", $data->department);
+        $stmt->bindParam(":phone", $data->phone);
+        $stmt->bindParam(":id", $data->faculty_id);
+        
+        if ($stmt->execute()) {
+            http_response_code(200);
+            echo json_encode(["message" => "Faculty updated successfully"]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to update faculty"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Faculty ID required"]);
+    }
+}
+
+// =============================================
+// api/search/course.php - Search by Course
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $course_name = isset($_GET['course_name']) ? $_GET['course_name'] : '';
+    
+    if (!empty($course_name)) {
+        $query = "SELECT DISTINCT 
+                    f.id as faculty_id,
+                    f.name as faculty_name,
+                    f.email as faculty_email,
+                    f.department,
+                    co.course_name,
+                    co.course_code,
+                    c.id as consultation_id,
+                    c.day_of_week,
+                    c.start_time,
+                    c.end_time,
+                    c.location
+                  FROM consultations c
+                  JOIN faculty f ON c.faculty_id = f.id
+                  JOIN courses co ON c.course_id = co.id
+                  WHERE co.course_name LIKE :course_name 
+                  AND f.is_registered = TRUE
+                  AND c.is_active = TRUE
+                  ORDER BY f.name, c.day_of_week";
+        
+        $stmt = $db->prepare($query);
+        $search_term = "%{$course_name}%";
+        $stmt->bindParam(":course_name", $search_term);
+        $stmt->execute();
+        
+        $results = $stmt->fetchAll();
+        
+        // Group by faculty
+        $grouped = [];
+        foreach ($results as $row) {
+            $fid = $row['faculty_id'];
+            if (!isset($grouped[$fid])) {
+                $grouped[$fid] = [
+                    'id' => $row['faculty_id'],
+                    'name' => $row['faculty_name'],
+                    'email' => $row['faculty_email'],
+                    'department' => $row['department'],
+                    'courses' => [],
+                    'consultations' => []
+                ];
+            }
+            
+            if (!in_array($row['course_name'], $grouped[$fid]['courses'])) {
+                $grouped[$fid]['courses'][] = $row['course_name'];
+            }
+            
+            $grouped[$fid]['consultations'][] = [
+                'id' => $row['consultation_id'],
+                'course' => $row['course_name'],
+                'day' => $row['day_of_week'],
+                'start_time' => $row['start_time'],
+                'end_time' => $row['end_time'],
+                'location' => $row['location']
+            ];
+        }
+        
+        http_response_code(200);
+        echo json_encode(["data" => array_values($grouped)]);
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Course name required"]);
+    }
+}
+
+// =============================================
+// api/search/faculty.php - Search by Faculty Name
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $faculty_name = isset($_GET['faculty_name']) ? $_GET['faculty_name'] : '';
+    
+    if (!empty($faculty_name)) {
+        $query = "SELECT DISTINCT 
+                    f.id as faculty_id,
+                    f.name as faculty_name,
+                    f.email as faculty_email,
+                    f.department,
+                    co.course_name,
+                    co.course_code,
+                    c.id as consultation_id,
+                    c.day_of_week,
+                    c.start_time,
+                    c.end_time,
+                    c.location
+                  FROM faculty f
+                  LEFT JOIN consultations c ON f.id = c.faculty_id AND c.is_active = TRUE
+                  LEFT JOIN courses co ON c.course_id = co.id
+                  WHERE f.name LIKE :faculty_name 
+                  AND f.is_registered = TRUE
+                  ORDER BY f.name, c.day_of_week";
+        
+        $stmt = $db->prepare($query);
+        $search_term = "%{$faculty_name}%";
+        $stmt->bindParam(":faculty_name", $search_term);
+        $stmt->execute();
+        
+        $results = $stmt->fetchAll();
+        
+        // Group by faculty (same logic as course search)
+        $grouped = [];
+        foreach ($results as $row) {
+            $fid = $row['faculty_id'];
+            if (!isset($grouped[$fid])) {
+                $grouped[$fid] = [
+                    'id' => $row['faculty_id'],
+                    'name' => $row['faculty_name'],
+                    'email' => $row['faculty_email'],
+                    'department' => $row['department'],
+                    'courses' => [],
+                    'consultations' => []
+                ];
+            }
+            
+            if ($row['course_name'] && !in_array($row['course_name'], $grouped[$fid]['courses'])) {
+                $grouped[$fid]['courses'][] = $row['course_name'];
+            }
+            
+            if ($row['consultation_id']) {
+                $grouped[$fid]['consultations'][] = [
+                    'id' => $row['consultation_id'],
+                    'course' => $row['course_name'],
+                    'day' => $row['day_of_week'],
+                    'start_time' => $row['start_time'],
+                    'end_time' => $row['end_time'],
+                    'location' => $row['location']
+                ];
+            }
+        }
+        
+        http_response_code(200);
+        echo json_encode(["data" => array_values($grouped)]);
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Faculty name required"]);
+    }
+}
+
+// =============================================
+// api/consultations/create.php - Add Consultation
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->faculty_id) && !empty($data->course_id)) {
+        $query = "INSERT INTO consultations (faculty_id, course_id, day_of_week, start_time, end_time, location) 
+                  VALUES (:faculty_id, :course_id, :day, :start, :end, :location)";
+        
+        $stmt = $db->prepare($query);
+        
+        $stmt->bindParam(":faculty_id", $data->faculty_id);
+        $stmt->bindParam(":course_id", $data->course_id);
+        $stmt->bindParam(":day", $data->day_of_week);
+        $stmt->bindParam(":start", $data->start_time);
+        $stmt->bindParam(":end", $data->end_time);
+        $stmt->bindParam(":location", $data->location);
+        
+        if ($stmt->execute()) {
+            http_response_code(201);
+            echo json_encode(["message" => "Consultation created successfully"]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to create consultation"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Incomplete data"]);
+    }
+}
+
+// =============================================
+// api/consultations/update.php - Update Location
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->consultation_id)) {
+        $query = "UPDATE consultations SET location = :location WHERE id = :id";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(":location", $data->location);
+        $stmt->bindParam(":id", $data->consultation_id);
+        
+        if ($stmt->execute()) {
+            http_response_code(200);
+            echo json_encode(["message" => "Location updated successfully"]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to update location"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Consultation ID required"]);
+    }
+}
+
+// =============================================
+// api/requests/create.php - Submit Request
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->faculty_id) && !empty($data->student_email) && !empty($data->message)) {
+        $query = "INSERT INTO consultation_requests (faculty_id, consultation_id, student_email, message) 
+                  VALUES (:faculty_id, :consultation_id, :email, :message)";
+        
+        $stmt = $db->prepare($query);
+        
+        $stmt->bindParam(":faculty_id", $data->faculty_id);
+        $stmt->bindParam(":consultation_id", $data->consultation_id);
+        $stmt->bindParam(":email", $data->student_email);
+        $stmt->bindParam(":message", $data->message);
+        
+        if ($stmt->execute()) {
+            http_response_code(201);
+            echo json_encode(["message" => "Request submitted successfully"]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to submit request"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Incomplete data"]);
+    }
+}
+
+// =============================================
+// api/requests/faculty.php - Get Faculty Requests
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $faculty_id = isset($_GET['faculty_id']) ? $_GET['faculty_id'] : '';
+    
+    if (!empty($faculty_id)) {
+        $query = "SELECT 
+                    cr.id,
+                    cr.student_email,
+                    cr.message,
+                    cr.status,
+                    cr.created_at,
+                    co.course_name,
+                    c.day_of_week,
+                    c.start_time,
+                    c.end_time
+                  FROM consultation_requests cr
+                  JOIN consultations c ON cr.consultation_id = c.id
+                  JOIN courses co ON c.course_id = co.id
+                  WHERE cr.faculty_id = :faculty_id
+                  ORDER BY cr.created_at DESC";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(":faculty_id", $faculty_id);
+        $stmt->execute();
+        
+        $results = $stmt->fetchAll();
+        
+        http_response_code(200);
+        echo json_encode(["data" => $results]);
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Faculty ID required"]);
+    }
+}
+
+// =============================================
+// api/requests/approve.php - Approve Request
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+require_once '../utils/email.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->request_id)) {
+        // Get request details
+        $get_query = "SELECT cr.student_email, f.name, co.course_name, c.day_of_week, c.start_time, c.location
+                      FROM consultation_requests cr
+                      JOIN faculty f ON cr.faculty_id = f.id
+                      JOIN consultations c ON cr.consultation_id = c.id
+                      JOIN courses co ON c.course_id = co.id
+                      WHERE cr.id = :id";
+        
+        $get_stmt = $db->prepare($get_query);
+        $get_stmt->bindParam(":id", $data->request_id);
+        $get_stmt->execute();
+        $request = $get_stmt->fetch();
+        
+        // Update status
+        $update_query = "UPDATE consultation_requests SET status = 'approved' WHERE id = :id";
+        $update_stmt = $db->prepare($update_query);
+        $update_stmt->bindParam(":id", $data->request_id);
+        
+        if ($update_stmt->execute() && $request) {
+            // Send email
+            $subject = "Consultation Request Approved";
+            $message = "<h2>Your consultation request has been approved!</h2>";
+            $message .= "<p><strong>Faculty:</strong> {$request['name']}</p>";
+            $message .= "<p><strong>Course:</strong> {$request['course_name']}</p>";
+            $message .= "<p><strong>Day:</strong> {$request['day_of_week']}</p>";
+            $message .= "<p><strong>Time:</strong> {$request['start_time']}</p>";
+            $message .= "<p><strong>Location:</strong> {$request['location']}</p>";
+            
+            sendEmail($request['student_email'], $subject, $message);
+            
+            http_response_code(200);
+            echo json_encode(["message" => "Request approved and email sent"]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to approve request"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Request ID required"]);
+    }
+}
+
+// =============================================
+// api/requests/decline.php - Decline Request
+// =============================================
+
+setCorsHeaders();
+require_once '../config/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    $data = json_decode(file_get_contents("php://input"));
+    
+    if (!empty($data->request_id)) {
+        $query = "UPDATE consultation_requests SET status = 'declined' WHERE id = :id";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(":id", $data->request_id);
+        
+        if ($stmt->execute()) {
+            http_response_code(200);
+            echo json_encode(["message" => "Request declined"]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Unable to decline request"]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Request ID required"]);
+    }
+}
+
+?>
