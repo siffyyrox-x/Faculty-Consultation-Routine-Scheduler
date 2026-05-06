@@ -19,9 +19,9 @@ class Request extends Model {
     public function findByStudentEmail($email) {
         $query = "SELECT cr.id, cr.student_name, cr.status, cr.message, cr.response_message, cr.created_at, f.name as faculty_name, co.course_name, c.day_of_week, c.start_time, c.location
                   FROM consultation_requests cr
-                  JOIN faculty f ON cr.faculty_id = f.id
-                  JOIN consultations c ON cr.consultation_id = c.id
-                  JOIN courses co ON c.course_id = co.id
+                  LEFT JOIN faculty f ON cr.faculty_id = f.id
+                  LEFT JOIN consultations c ON cr.consultation_id = c.id
+                  LEFT JOIN courses co ON c.course_id = co.id
                   WHERE cr.student_email = :email
                   ORDER BY cr.created_at DESC";
 
@@ -34,9 +34,9 @@ class Request extends Model {
     public function findById($id) {
         $query = "SELECT cr.id, cr.student_name, cr.status, cr.student_email, f.name, co.course_name, c.day_of_week, c.start_time, c.location
                   FROM consultation_requests cr
-                  JOIN faculty f ON cr.faculty_id = f.id
-                  JOIN consultations c ON cr.consultation_id = c.id
-                  JOIN courses co ON c.course_id = co.id
+                  LEFT JOIN faculty f ON cr.faculty_id = f.id
+                  LEFT JOIN consultations c ON cr.consultation_id = c.id
+                  LEFT JOIN courses co ON c.course_id = co.id
                   WHERE cr.id = :id";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(":id", $id);
