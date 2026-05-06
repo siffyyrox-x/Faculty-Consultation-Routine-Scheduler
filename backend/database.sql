@@ -1,5 +1,7 @@
 -- =============================================
 -- Faculty Consultation Scheduler - Database Schema
+-- Version: 1.1.0
+-- Updated: 2026-05-07
 -- =============================================
 
 -- Drop existing tables if they exist
