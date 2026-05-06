@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS courses;
 
 -- =============================================
 -- 1. FACULTY TABLE
+-- Stores profile information for faculty members
 -- =============================================
 CREATE TABLE faculty (
     id INT AUTO_INCREMENT PRIMARY KEY,
