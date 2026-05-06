@@ -1,6 +1,5 @@
 -- =============================================
 -- Faculty Consultation Scheduler - Database Schema
--- Optimized for MySQL 8.0+
 -- =============================================
 
 -- Drop existing tables if they exist
