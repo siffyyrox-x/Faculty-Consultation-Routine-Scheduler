@@ -81,17 +81,17 @@ class SearchController extends Controller {
                 $grouped[$fid]['courses'][] = $row['course_name'];
             }
 
-            if (!empty($row['consultation_id'])) {
+            if (!empty($row['id'])) {
                 // Prevent duplicate consultations if any
                 $consultExists = false;
                 foreach($grouped[$fid]['consultations'] as $c) {
-                    if ($c['id'] == $row['consultation_id']) {
+                    if ($c['id'] == $row['id']) {
                         $consultExists = true; break;
                     }
                 }
                 if (!$consultExists) {
                     $grouped[$fid]['consultations'][] = [
-                        'id' => $row['consultation_id'],
+                        'id' => $row['id'],
                         'course' => $row['course_name'],
                         'day' => $row['day_of_week'],
                         'start_time' => $row['start_time'],
