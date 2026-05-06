@@ -38,6 +38,17 @@ Following enhancement can be added to the current system which will improve the 
 2.  **Login system:** Implementation of Multi-Factor Authentication (MFA) for enhanced security.
 3.  **Reporting system:** Detailed analytical reports with graphical representation of consultation trends.
 
+## Technical Implementation Details
+
+### Unified ID Mapping
+To ensure seamless integration between the PHP backend and React frontend, all consultation slots are now referenced using a unified `id` key. This prevents naming mismatches that previously occurred between `consultation_id` and generic `id` fields.
+
+### Fault-Tolerant Request Tracking
+The student tracking portal now utilizes `LEFT JOIN` operations across the `consultation_requests`, `faculty`, and `consultations` tables. This ensures that historical request data remains accessible to students even if faculty members update their schedule or modify specific consultation slots.
+
+### Session Management
+Student sessions are persisted via `localStorage` for convenience, while a dedicated logout mechanism ensures that users can clear their data and track different email addresses securely.
+
 <br><br><br><br>
 <br><br><br><br>
 <center>PAGE 4</center>
