@@ -44,6 +44,9 @@ class Request extends Model {
         return $stmt->fetch();
     }
 
+    /**
+     * Create a new consultation request
+     */
     public function create($faculty_id, $consultation_id, $student_name, $student_email, $message) {
         $query = "INSERT INTO consultation_requests (faculty_id, consultation_id, student_name, student_email, message) 
                   VALUES (:faculty_id, :consultation_id, :name, :email, :message)";
