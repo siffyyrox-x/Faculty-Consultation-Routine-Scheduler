@@ -67,6 +67,7 @@ CREATE TABLE consultations (
 
 -- =============================================
 -- 4. CONSULTATION REQUESTS TABLE (Student Requests)
+-- Tracks student requests for specific consultation slots
 -- =============================================
 CREATE TABLE consultation_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
