@@ -32,6 +32,7 @@ CREATE TABLE faculty (
 
 -- =============================================
 -- 2. COURSES TABLE
+-- Stores course codes and titles for departmental mapping
 -- =============================================
 CREATE TABLE courses (
     id INT AUTO_INCREMENT PRIMARY KEY,
