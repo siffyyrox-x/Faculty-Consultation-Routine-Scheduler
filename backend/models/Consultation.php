@@ -27,6 +27,9 @@ class Consultation extends Model {
         return $stmt->fetchAll();
     }
 
+    /**
+     * Create a new consultation slot
+     */
     public function create($faculty_id, $course_id, $day_of_week, $start_time, $end_time, $location) {
         $query = "INSERT INTO consultations (faculty_id, course_id, day_of_week, start_time, end_time, location, is_active) 
                   VALUES (:faculty_id, :course_id, :day_of_week, :start_time, :end_time, :location, TRUE)";
