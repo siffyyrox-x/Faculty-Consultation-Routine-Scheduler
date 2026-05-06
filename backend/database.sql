@@ -45,6 +45,7 @@ CREATE TABLE courses (
 
 -- =============================================
 -- 3. CONSULTATIONS TABLE (Faculty Consultation Hours)
+-- Stores scheduled time slots for faculty availability
 -- =============================================
 CREATE TABLE consultations (
     id INT AUTO_INCREMENT PRIMARY KEY,
