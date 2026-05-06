@@ -103,6 +103,7 @@ CREATE TABLE routine_items (
 
 -- =============================================
 -- SAMPLE DATA FOR TESTING
+-- Initial data for development and demonstration
 -- =============================================
 
 -- Insert sample courses
