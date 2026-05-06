@@ -7,9 +7,9 @@ class Faculty extends Model {
      */
     public function searchByCourse($searchTerm) {
         $query = "SELECT DISTINCT 
-                    f.id as faculty_id,
-                    f.name as faculty_name,
-                    f.email as faculty_email,
+                    f.id as id,
+                    f.name as name,
+                    f.email as email,
                     f.department,
                     f.initial,
                     f.desk_no,
@@ -38,9 +38,9 @@ class Faculty extends Model {
 
     public function searchByName($searchTerm) {
         $query = "SELECT DISTINCT 
-                    f.id as faculty_id,
-                    f.name as faculty_name,
-                    f.email as faculty_email,
+                    f.id as id,
+                    f.name as name,
+                    f.email as email,
                     f.department,
                     f.initial,
                     f.desk_no,
@@ -69,9 +69,9 @@ class Faculty extends Model {
 
     public function searchByDepartment($searchTerm) {
         $query = "SELECT DISTINCT 
-                    f.id as faculty_id,
-                    f.name as faculty_name,
-                    f.email as faculty_email,
+                    f.id as id,
+                    f.name as name,
+                    f.email as email,
                     f.department,
                     f.initial,
                     f.desk_no,

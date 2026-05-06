@@ -73,12 +73,12 @@ class SearchController extends Controller {
     private function groupSearchResults($results) {
         $grouped = [];
         foreach ($results as $row) {
-            $fid = $row['faculty_id'];
+            $fid = $row['id'];
             if (!isset($grouped[$fid])) {
                 $grouped[$fid] = [
-                    'id' => $row['faculty_id'],
-                    'name' => $row['faculty_name'],
-                    'email' => $row['faculty_email'],
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'email' => $row['email'],
                     'department' => $row['department'],
                     'initial' => $row['initial'],
                     'desk_no' => $row['desk_no'],
