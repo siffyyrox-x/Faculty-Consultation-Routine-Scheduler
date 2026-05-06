@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Search Controller
+ * Handles course and faculty search requests from students.
+ */
 class SearchController extends Controller {
 
     public function course() {
