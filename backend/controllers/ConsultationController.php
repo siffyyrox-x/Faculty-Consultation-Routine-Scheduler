@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Consultation Controller
+ * Manages faculty consultation schedule slots.
+ */
 class ConsultationController extends Controller {
 
     public function faculty() {

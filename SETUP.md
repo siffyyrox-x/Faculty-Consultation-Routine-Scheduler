@@ -64,6 +64,14 @@ Open your browser and go to:
 
 ## 🎉 You're Done!
 
+## Developer Notes
+
+- The backend is built with pure PHP to demonstrate core MVC principles.
+- Frontend uses React with Vite for a fast development experience.
+- Database utilizes MySQL with InnoDB for transactional integrity.
+
+### License
+
 ### Test It Out:
 
 1. **Search for a course**: Type "Data Structures" and click Search

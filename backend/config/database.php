@@ -3,6 +3,10 @@
 // Database Configuration
 // =============================================
 
+/**
+ * Database Configuration
+ * Manages connection parameters and PDO initialization.
+ */
 class Database {
     private $host = "localhost";
     private $database_name = "faculty_consultation_db";

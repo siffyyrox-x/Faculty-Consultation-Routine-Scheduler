@@ -7,7 +7,8 @@
 
 # Enable rewrite engine
 <IfModule mod_rewrite.c>
-    RewriteEngine On
+    # Apache configuration for API routing
+RewriteEngine On
     
     # Handle preflight OPTIONS requests
     RewriteCond %{REQUEST_METHOD} OPTIONS

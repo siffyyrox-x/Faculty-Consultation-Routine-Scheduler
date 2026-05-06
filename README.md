@@ -28,7 +28,15 @@ A complete web-based system that allows students to search for faculty consultat
 - Node.js 18+ and npm
 - XAMPP, MAMP, or LAMP stack (recommended)
 
-## 🛠️ Installation
+## 🛠️ Key Features
+
+- **Faculty Dashboard**: Manage consultation slots and student requests.
+- **Student Portal**: Search faculty by department or name and request consultations.
+- **Email Notifications**: Real-time email updates for request approvals and denials.
+- **Routine Management**: Students can save consultation slots to their personal routine.
+- **MVC Architecture**: Clean separation of concerns for maintainability.
+
+## 📋 Installation
 
 ### 1. Clone or Download the Project
 

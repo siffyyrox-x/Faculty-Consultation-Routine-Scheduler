@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Course Controller
+ * Manages academic courses and department listings.
+ */
 class CourseController extends Controller {
 
     public function list() {

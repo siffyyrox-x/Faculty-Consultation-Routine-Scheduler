@@ -18,7 +18,11 @@ function sendEmail($to, $subject, $htmlMessage)
 
     // Load PHPMailer manually since Composer is not installed
     require_once __DIR__ . '/../PHPMailer/src/Exception.php';
-    require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
+    /**
+ * Email Utility
+ * Provides a standardized way to send system notifications.
+ */
+require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
     require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
 
     $mail = new PHPMailer\PHPMailer\PHPMailer(true);

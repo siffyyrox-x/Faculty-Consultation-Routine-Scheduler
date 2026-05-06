@@ -1,24 +1,34 @@
 <?php
 
+/**
+ * Basic API Router
+ * Maps incoming HTTP requests to controller actions.
+ */
 class Router {
     private $routes = [];
 
+    /**
+     * Register a new route
+     */
     public function add($method, $url, $action) {
         $this->routes[] = [
-            'method' => $method,
+            'method' => strtoupper($method),
             'url' => rtrim($url, '/'),
             'action' => $action
         ];
     }
 
+    /**
+     * Match and execute the requested route
+     */
     public function dispatch($requestMethod, $requestUrl) {
-        // Normalize URL
+        // Normalize URL by removing leading/trailing slashes
         $requestUrl = trim($requestUrl, '/');
         if (empty($requestUrl)) {
             $requestUrl = 'home';
         }
 
-        // Allow CORS preflight requests
+        // Handle CORS preflight
         if ($requestMethod === 'OPTIONS') {
             http_response_code(200);
             exit;
@@ -36,21 +46,22 @@ class Router {
                         try {
                             $controller->$methodName();
                         } catch (Exception $exception) {
-                            $this->sendError(500, "Internal Server Error: " . $exception->getMessage());
+                            $this->sendError(500, "System Error: " . $exception->getMessage());
                         }
                         return;
                     }
                 } else {
-                    $this->sendError(500, "Controller mapping error: $controllerName not found");
+                    $this->sendError(500, "Application Error: Controller '{$controllerName}' is missing.");
                     return;
                 }
             }
         }
 
-        $this->sendError(404, "Invalid endpoint: $requestUrl");
+        $this->sendError(404, "API Error: The endpoint '{$requestUrl}' does not exist on this server.");
     }
 
     private function sendError($code, $message) {
+        header('Content-Type: application/json');
         http_response_code($code);
         echo json_encode(['message' => $message]);
     }
