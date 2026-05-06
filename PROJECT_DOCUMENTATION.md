@@ -4,7 +4,14 @@
 **Name:**   
 **ID:**   
 **Email:**   
-**Project Title:** Faculty Consultation Routine Scheduler
+**Project Title:** Faculty Consultation Routine Scheduler - Technical Documentation
+
+## Technology Stack
+- **Backend**: PHP 7.4+, MySQL 8.0
+- **Frontend**: React 18, Vite, CSS3
+- **Tools**: PHPMailer for email delivery
+
+## Architecture
 
 ## Project Features:
 By the end of this course, implemented features: 
