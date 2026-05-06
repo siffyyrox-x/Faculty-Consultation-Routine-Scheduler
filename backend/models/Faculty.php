@@ -106,6 +106,9 @@ class Faculty extends Model {
         return $stmt->fetch();
     }
 
+    /**
+     * Find a faculty member by ID
+     */
     public function findById($id) {
         $query = "SELECT * FROM faculty WHERE id = :id";
         $stmt = $this->db->prepare($query);
@@ -114,6 +117,9 @@ class Faculty extends Model {
         return $stmt->fetch();
     }
 
+    /**
+     * Create a new faculty record
+     */
     public function create($name, $email, $password, $department, $initial, $desk_no) {
         $query = "INSERT INTO faculty (name, email, password, department, initial, desk_no, is_registered) 
                   VALUES (:name, :email, :password, :department, :initial, :desk_no, TRUE)";
