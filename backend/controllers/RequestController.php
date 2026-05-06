@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/../utils/email.php';
 
+/**
+ * Request Controller
+ * Manages consultation requests, approvals, and student notifications.
+ */
 class RequestController extends Controller {
 
     public function faculty() {
