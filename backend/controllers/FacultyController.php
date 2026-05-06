@@ -25,12 +25,12 @@ class FacultyController extends Controller {
 
         if ($faculty) {
             if (!$faculty['is_registered']) {
-                $this->errorResponse("Account not activated. Please complete registration.", 403);
+                $this->errorResponse("Account not activated. Please complete your registration via the faculty portal.", 403);
             }
 
             if (password_verify($data['password'], $faculty['password'])) {
                 $this->jsonResponse([
-                    "message" => "Login successful",
+                    "message" => "Login successful. Welcome back, {$faculty['name']}!",
                     "faculty" => [
                         "id" => $faculty['id'],
                         "name" => $faculty['name'],
@@ -41,10 +41,10 @@ class FacultyController extends Controller {
                     ]
                 ], 200);
             } else {
-                $this->errorResponse("Invalid credentials", 401);
+                $this->errorResponse("Invalid password. Please check your credentials and try again.", 401);
             }
         } else {
-            $this->errorResponse("Faculty not found", 401);
+            $this->errorResponse("Authentication failed. No faculty account found with that email address.", 401);
         }
     }
 
