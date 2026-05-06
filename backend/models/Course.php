@@ -1,8 +1,15 @@
 <?php
 
+/**
+ * Course Model
+ * Handles operations for academic courses.
+ */
 class Course extends Model {
 
-    public function getAll() {
+    /**
+     * Get all courses, optionally filtered by department
+     */
+    public function getAll($department = null) {
         $query = "SELECT id, course_code, course_name, department 
                   FROM courses 
                   ORDER BY department, course_name";
