@@ -15,7 +15,7 @@
 5. Choose file: `/FAC/backend/database.sql`
 6. Click "Go" to import
 
-✅ You should see 5 tables created with sample data
+You should see 5 tables created with sample data
 
 ## Step 3: Place Project Files
 
@@ -62,7 +62,7 @@ curl "http://localhost/FAC/backend/api/search/course.php?course_name=Data"
 Open your browser and go to:
 **http://localhost:5173**
 
-## 🎉 You're Done!
+## You're Done!
 
 ## Developer Notes
 
