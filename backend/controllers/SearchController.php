@@ -6,6 +6,10 @@
  */
 class SearchController extends Controller {
 
+    /**
+     * Search for faculty by course name or code
+     * Groups results by faculty with nested consultations and unique courses.
+     */
     public function course() {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             $this->errorResponse("Method not allowed", 405);
@@ -24,6 +28,9 @@ class SearchController extends Controller {
         $this->jsonResponse(["data" => array_values($grouped)]);
     }
 
+    /**
+     * Search for faculty by name or initial
+     */
     public function faculty() {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             $this->errorResponse("Method not allowed", 405);
@@ -42,6 +49,9 @@ class SearchController extends Controller {
         $this->jsonResponse(["data" => array_values($grouped)]);
     }
 
+    /**
+     * Search for faculty by department
+     */
     public function department() {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             $this->errorResponse("Method not allowed", 405);
