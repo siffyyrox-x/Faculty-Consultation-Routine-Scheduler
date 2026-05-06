@@ -46,6 +46,7 @@ $router->add('GET', 'requests/faculty', 'RequestController@faculty');
 $router->add('GET', 'requests/student', 'RequestController@student');
 $router->add('PUT', 'requests/approve', 'RequestController@approve');
 $router->add('PUT', 'requests/decline', 'RequestController@decline');
+$router->add('GET', 'health', 'Controller@health');
 
 // Parse URL and route
 $url = isset($_GET['url']) ? $_GET['url'] : '';

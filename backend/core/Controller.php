@@ -47,4 +47,27 @@ class Controller {
         }
         return $decodedData;
     }
+
+    /**
+     * System health check for diagnostic purposes
+     */
+    public function health() {
+        // Attempt database connection check
+        $db = new Database();
+        $isConnected = false;
+        try {
+            $conn = $db->getConnection();
+            $isConnected = $conn ? true : false;
+        } catch(Exception $e) {
+            $isConnected = false;
+        }
+
+        $this->jsonResponse([
+            "status" => "active",
+            "api" => "v1.0.1",
+            "database" => $isConnected ? "connected" : "failed",
+            "environment" => PHP_OS,
+            "timestamp" => date('Y-m-d H:i:s')
+        ]);
+    }
 }
