@@ -1,4 +1,9 @@
 <?php
+/**
+ * Faculty Consultation Scheduler
+ * Main Entry Point and Request Dispatcher
+ */
+require_once __DIR__ . '/core/Controller.php';
 require_once 'config/cors.php';
 setCorsHeaders();
 
