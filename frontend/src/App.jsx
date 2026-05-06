@@ -1182,11 +1182,11 @@ const FacultyCard = ({ faculty, onAddToRoutine, onRequest, formatTime }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl hover:shadow-black/5 transition-all group shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-2xl hover:shadow-black/5 transition-all group shadow-sm hover:-translate-y-1">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100 group-hover:border-black transition-colors">
-            <User size={28} className="text-black" />
+          <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:border-black transition-all group-hover:rotate-3">
+            <User size={32} className="text-black" />
           </div>
           <div>
             <h3 className="font-bold text-lg text-black group-hover:text-black transition-colors">
