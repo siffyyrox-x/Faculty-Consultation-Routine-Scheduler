@@ -1,5 +1,7 @@
 -- =============================================
 -- Computer Science Courses & Faculty Update
+-- Version: 1.0.1
+-- Updated: 2026-05-07
 -- =============================================
 
 -- Add desk_no field to faculty table
